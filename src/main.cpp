@@ -21,7 +21,7 @@
 #include"Engine/Camera/Camera.hpp"
 
 // Shaders
-#include"include_shaders.hpp"
+#include"shaders/includeShaders.hpp"
 
 // Function Forward Declerations
 void ErrorCallback(int errorCode, const char* errorDesc);
@@ -37,7 +37,7 @@ const unsigned int msaaSamples {4};
 // Main Window Config
 const std::string windowTitle {"LearningSokol"};
 int windowWidth {800}, windowHeight {600};
-const float windowAspectRatio {(float)windowWidth / (float)windowHeight};
+float windowAspectRatio;
 const bool windowFullscreen {true};
 const float windowBgColor[4] = {0.2f, 0.3f, 0.3f, 1.0f};
 
@@ -78,9 +78,15 @@ int main(void) {
         windowWidth = glfwGetVideoMode(glfwGetPrimaryMonitor())->width;
         windowHeight = glfwGetVideoMode(glfwGetPrimaryMonitor())->height;
 
+        // Calculate Window Aspect Ratio
+        windowAspectRatio = (float)windowWidth / (float)windowHeight;
+
         // Create Main Window - Fullscreen and Borderless
         win = glfwCreateWindow(windowWidth, windowHeight, windowTitle.c_str(), glfwGetPrimaryMonitor(), nullptr);
     } else {
+        // Calculate Window Aspect Ratio
+        windowAspectRatio = (float)windowWidth / (float)windowHeight;
+
         // Create Main Window - Windowed and Bordered
         win = glfwCreateWindow(windowWidth, windowHeight, windowTitle.c_str(), nullptr, nullptr);
     }
@@ -112,31 +118,60 @@ int main(void) {
     renderPassAction.colors[0].load_action = SG_LOADACTION_CLEAR;
     renderPassAction.colors[0].clear_value = {windowBgColor[0], windowBgColor[1], windowBgColor[2], windowBgColor[3]};
 
-    // Triangle Data
-    const float triangleVertices[] = {
-        -0.4f, -0.5f, 0.0f,
-        0.4f, -0.5f, 0.0f,
-        0.0f, 0.5f, 0.0f,
+    // Cube Data
+    const float cubeVertices[] = {
+        -1.0, -1.0, -1.0,
+         1.0, -1.0, -1.0,
+         1.0,  1.0, -1.0,
+        -1.0,  1.0, -1.0,
+
+        -1.0, -1.0,  1.0,
+         1.0, -1.0,  1.0,
+         1.0,  1.0,  1.0,
+        -1.0,  1.0,  1.0,
+
+        -1.0, -1.0, -1.0,
+        -1.0,  1.0, -1.0,
+        -1.0,  1.0,  1.0,
+        -1.0, -1.0,  1.0,
+
+        1.0, -1.0, -1.0,
+        1.0,  1.0, -1.0,
+        1.0,  1.0,  1.0,
+        1.0, -1.0,  1.0,
+
+        -1.0, -1.0, -1.0,
+        -1.0, -1.0,  1.0,
+         1.0, -1.0,  1.0,
+         1.0, -1.0, -1.0,
+
+        -1.0,  1.0, -1.0,
+        -1.0,  1.0,  1.0,
+         1.0,  1.0,  1.0,
+         1.0,  1.0, -1.0,
     };
-    const uint16_t triangleIndices[] = {
-        0, 1, 2,
+    const uint16_t cubeIndices[] = {
+        0, 1, 2,  0, 2, 3,
+        6, 5, 4,  7, 6, 4,
+        8, 9, 10,  8, 10, 11,
+        14, 13, 12,  15, 14, 12,
+        16, 17, 18,  16, 18, 19,
+        22, 21, 20,  23, 22, 20,
     };
 
     // Vertex Buffer Objects
-    // Triangle VBO
-    sg_buffer_desc triangleVBODesc {};
-    triangleVBODesc.type = SG_BUFFERTYPE_VERTEXBUFFER;
-    triangleVBODesc.data.ptr = triangleVertices;
-    triangleVBODesc.data.size = sizeof(triangleVertices);
-    sg_buffer triangleVBO {sg_make_buffer(triangleVBODesc)};
+    // Cube VBO
+    sg_buffer_desc cubeVBODesc {};
+    cubeVBODesc.type = SG_BUFFERTYPE_VERTEXBUFFER;
+    cubeVBODesc.data = SG_RANGE(cubeVertices);
+    sg_buffer cubeVBO {sg_make_buffer(cubeVBODesc)};
 
     // Index/Element Buffer Objects
-    // Triangle IBO
-    sg_buffer_desc triangleIBODesc {};
-    triangleIBODesc.type = SG_BUFFERTYPE_INDEXBUFFER;
-    triangleIBODesc.data.ptr = triangleIndices;
-    triangleIBODesc.data.size = sizeof(triangleIndices);
-    sg_buffer triangleIBO {sg_make_buffer(triangleIBODesc)};
+    // Cube IBO
+    sg_buffer_desc cubeIBODesc {};
+    cubeIBODesc.type = SG_BUFFERTYPE_INDEXBUFFER;
+    cubeIBODesc.data = SG_RANGE(cubeIndices);
+    sg_buffer cubeIBO {sg_make_buffer(cubeIBODesc)};
 
     // Shaders
     // Test Shader
@@ -145,8 +180,8 @@ int main(void) {
     // Resource Bindings
     // Test Object Bindings
     sg_bindings testObjBindings {};
-    testObjBindings.vertex_buffers[0] = triangleVBO;
-    testObjBindings.index_buffer = triangleIBO;
+    testObjBindings.vertex_buffers[0] = cubeVBO;
+    testObjBindings.index_buffer = cubeIBO;
 
     // Pipelines
     // Test Object Pipeline
@@ -191,7 +226,7 @@ int main(void) {
         sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, SG_RANGE(testShaderUniformBlock_0_Uniforms));
 
         // Render Test Object
-        sg_draw(0, 3, 1);
+        sg_draw(0, 36, 1);
 
         // End Render Pass and Submit Frame
         sg_end_pass();
@@ -211,10 +246,10 @@ int main(void) {
 
     // Terminate Program
     // Delete Vertex Buffer Objects
-    sg_destroy_buffer(triangleVBO);
+    sg_destroy_buffer(cubeVBO);
 
     // Delete Index/Element Buffer Objects
-    sg_destroy_buffer(triangleIBO);
+    sg_destroy_buffer(cubeIBO);
 
     // Delete Shaders
     sg_destroy_shader(testShader);

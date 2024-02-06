@@ -1,2 +1,0 @@
-Sokol is a collection of simple STB-style cross-platform libraries for C/C++, written in C. https://github.com/floooh/sokol
-It's easy to set up as all Sokol libraries are only a single header file. It's development is very active and is very easy to learn and use. This repository of mine is to hold all the code I write as I spend my time learning how to use Sokol GFX header file for graphics programming.
