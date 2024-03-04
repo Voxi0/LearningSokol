@@ -1,5 +1,37 @@
 ## Updates
 
+### 27-Feb-2024:
+
+- Merged PR https://github.com/floooh/sokol/pull/1001, this is a small fix for GLES3 to avoid
+  calling glInvalidateFramebuffer() on non-existing depth/stencil surfaces.
+
+  Many thanks to @danielchasehooper!
+
+#### 26-Feb-2024:
+
+- Minor fix in sokol_imgui.h: The drawing code now detects and skips the special
+  `ImDrawCallback_ResetRenderState` constant, not doing so would try to call a function
+  at address (-8) which then results in a crash.
+
+  See for what this is: https://github.com/ocornut/imgui/blob/277ae93c41314ba5f4c7444f37c4319cdf07e8cf/imgui.h#L2583-L2587
+
+  sokol_imgui.h doesn't have any handling for this special callback, it will just ignore it.
+
+  As a minor additional behaviour change, any user callback will now also cause `sg_reset_state_cache()`
+  to be called. This is just a precaution in case the user callback code calls any native 3D backend API
+  functions.
+
+  Related issue: https://github.com/floooh/sokol/issues/1000
+
+#### 21-Feb-2024:
+
+- PR https://github.com/floooh/sokol/pull/993 has been merged, this allows to inject
+  additional GL functions into the Win32 GL loader of sokol_gfx.h (TBH, it's a very specialized
+  feature for people who know what they're doing, but it also fixes a very specific problem
+  while at the same time resolving to 'nothing' when not used).
+
+  Many thanks for @kcbanner for the PR!
+
 #### 31-Jan-2024:
 
 - sokol_app.h macOS: merged a workaround for the application window not being focused
@@ -318,7 +350,7 @@ The major topic of this update is the 'finalized' WebGPU support in sokol_gfx.h 
   `sg_frame_stats` returned by the new sokol_gfx.h function `sg_query_frame_stats()`.
 
 - The sokol-samples repository gained 3 new samples:
-  - cubemap-jpeg-sapp.c (load a cubemap from seperate JPEG files)
+  - cubemap-jpeg-sapp.c (load a cubemap from separate JPEG files)
   - cubemaprt-sapp.c (render into cubemap faces - this demo actually existed a while but wasn't "official" so far)
   - drawcallperf-sapp.c (a sample to explore the performance overhead of sg_apply_bindings, sg_apply_uniforms and sg_draw)
 
@@ -890,7 +922,7 @@ GLES2/WebGL1 support has been removed from the sokol headers (now that
   A new header ```sokol_log.h``` has been added to provide a standard logging callback implementation
   which provides logging output on all platforms to stderr and/or platform specific logging
   facilities. ```sokol_log.h``` only uses fputs() and platform specific logging function instead
-  of fprintf() to preverse some executable size.
+  of fprintf() to preserve some executable size.
 
   **QUESTION**: Why are the sokol headers now silent, unless a logging callback is installed?
   This is mainly because a standard logging function which does something meaningful on all
@@ -1375,7 +1407,7 @@ so that it's easier to publish new bindings after updates to the sokol headers).
       of uniform block members. The default (SG_UNIFORMLAYOUT_NATIVE) keeps the same
       behaviour, so existing code shouldn't need to be changed. With the packing
       rule SG_UNIFORMLAYOUT_STD140 the uniform block interior is expected to be
-      layed out according to the OpenGL std140 packing rule.
+      laid out according to the OpenGL std140 packing rule.
     - Note that the SG_UNIFORMLAYOUT_STD140 only allows a subset of the actual std140
       packing rule: arrays are only allowed for the types vec4, int4 and mat4.
       This is because the uniform data must still be compatible with

@@ -324,6 +324,9 @@ typedef VkResult (APIENTRY * PFN_vkEnumerateInstanceExtensionProperties)(const c
 
 #include "platform.h"
 
+#define GLFW_NATIVE_INCLUDE_NONE
+#include "../include/GLFW/glfw3native.h"
+
 // Checks for whether the library has been initialized
 #define _GLFW_REQUIRE_INIT()                         \
     if (!_glfw.initialized)                          \
@@ -402,8 +405,8 @@ struct _GLFWwndconfig
     GLFWbool      focusOnShow;
     GLFWbool      mousePassthrough;
     GLFWbool      scaleToMonitor;
+    GLFWbool      scaleFramebuffer;
     struct {
-        GLFWbool  retina;
         char      frameName[256];
     } ns;
     struct {
@@ -412,6 +415,7 @@ struct _GLFWwndconfig
     } x11;
     struct {
         GLFWbool  keymenu;
+        GLFWbool  showDefault;
     } win32;
     struct {
         char      appId[256];
@@ -531,6 +535,7 @@ struct _GLFWwindow
     GLFWvidmode         videoMode;
     _GLFWmonitor*       monitor;
     _GLFWcursor*        cursor;
+    char*               title;
 
     int                 minwidth, minheight;
     int                 maxwidth, maxheight;
@@ -695,7 +700,7 @@ struct _GLFWplatform
     void (*getMonitorContentScale)(_GLFWmonitor*,float*,float*);
     void (*getMonitorWorkarea)(_GLFWmonitor*,int*,int*,int*,int*);
     GLFWvidmode* (*getVideoModes)(_GLFWmonitor*,int*);
-    void (*getVideoMode)(_GLFWmonitor*,GLFWvidmode*);
+    GLFWbool (*getVideoMode)(_GLFWmonitor*,GLFWvidmode*);
     GLFWbool (*getGammaRamp)(_GLFWmonitor*,GLFWgammaramp*);
     void (*setGammaRamp)(_GLFWmonitor*,const GLFWgammaramp*);
     // window
@@ -997,8 +1002,6 @@ char** _glfwParseUriList(char* text, int* count);
 char* _glfw_strdup(const char* source);
 int _glfw_min(int a, int b);
 int _glfw_max(int a, int b);
-float _glfw_fminf(float a, float b);
-float _glfw_fmaxf(float a, float b);
 
 void* _glfw_calloc(size_t count, size_t size);
 void* _glfw_realloc(void* pointer, size_t size);
